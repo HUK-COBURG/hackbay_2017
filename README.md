@@ -1,1 +1,6 @@
-# hackbay_2017
+# HUK @ Hack|Bay 2017
+
+## Chellange
+
+*SMART METER GATEWAY*
+
