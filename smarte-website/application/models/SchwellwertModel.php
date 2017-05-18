@@ -21,8 +21,8 @@ class SchwellwertModel extends CI_Model {
     public function get_schwellwerte($sensor) {
         $data = array();
         
-        $sql = "SELECT * FROM Schwellwerte WHERE SensorID = ?";
-        $query = $this->db->query($sql, array($sensor->get_SensorID()));
+        $sql = "SELECT * FROM Schwellwerte WHERE SensorID = ? AND SchwellwertVon <= ? AND (SchwellwertBis IS NULL OR SchwellwertBis < ?)";
+        $query = $this->db->query($sql, array($sensor->get_SensorID(), time(), time()));
         
         $data = $query->result('SchwellwertDAO');
         

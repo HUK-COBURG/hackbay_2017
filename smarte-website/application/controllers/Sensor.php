@@ -34,7 +34,8 @@ class Sensor extends CI_Controller {
             $data['sensor'] = $sensor;
             
             $this->load->model('SensorDataModel');
-            $data['data'] = $this->SensorDataModel->get_sensor_data_from_to($sensor, time()-3600, time());
+            $data['data']['hour'] = $this->SensorDataModel->get_sensor_data_from_to($sensor, time()-3600, time());
+            $data['data']['day'] = $this->SensorDataModel->get_sensor_data_from_to($sensor, time()-86400, time());
             $data['sensors'] = $this->SensorModel->get_active_sensors();
         
             $this->load->view('sensor',$data);

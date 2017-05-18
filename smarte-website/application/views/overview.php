@@ -34,6 +34,31 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
     <link href='http://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
     <link href="assets/css/pe-icon-7-stroke.css" rel="stylesheet" />
+	
+	    <!--   Core JS Files   -->
+    <script src="assets/js/jquery-1.10.2.js" type="text/javascript"></script>
+	<script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
+
+	<!--  Checkbox, Radio & Switch Plugins -->
+	<script src="assets/js/bootstrap-checkbox-radio-switch.js"></script>
+
+	<!--  Charts Plugin -->
+	<script src="assets/js/chartist.min.js"></script>
+
+    <!--  Notifications Plugin    -->
+    <script src="assets/js/bootstrap-notify.js"></script>
+
+    <!-- Light Bootstrap Table Core javascript and methods for Demo purpose -->
+	<script src="assets/js/light-bootstrap-dashboard.js"></script>
+
+	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
+	<script src="assets/js/demo.js"></script>
+
+    <!-- Toggle button -->
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    <script src="<?= base_url(); ?>assets/js/canvasjs.min.js"></script>
 
 </head>
 <body>
@@ -50,11 +75,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <div class="col-md-6">
                         <div class="card">
                             <div class="header">
-                                <h4 class="title">Warnungen</h4>
-                                <p class="category">Des letzten Tages</p>
+                                <h4 class="title">Benachrichtigungen</h4>
+                                <p class="category">Aktuell</p>
                             </div>
                             <div class="content">
-                                <div>ES IST WAS SCHLIMMES PASSIERT</div>
+                                <ul style="list-style:none; padding:0; text-decoration:none;" id="warningsOverview"></ul>
                             </div>
 							
                         </div>
@@ -67,7 +92,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <p class="category">Des letzten Tages</p>
                             </div>
                             <div class="content">
-                                <div>Fenster im Wohnzimmer schließen. Es wurde hohe Luftfeuchtigkeit im Wohnzimmer festgestellt.</div>
+                                <div>Schalten Sie den Fernseher aus, wenn Sie den Raum verlassen, um Strom zu sparen!</div>
                             </div>
 							
                         </div>
@@ -79,7 +104,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="header">
-                                    <h4 class="title">Sensor <?= $sensor->get_SensorBezeichnung() ?></h4>
+                                    <h4 class="title"><a href="<?= site_url('sensor/show/'.$sensor->get_SensorBezeichnung()); ?>"><?= $sensor->get_SensorBezeichnung() ?></a></h4>
                                 </div>
                                 <div class="content">
                                     <div id="sensor-<?= $sensor->get_SensorID() ?>" style="height: 400px; width: 100%;"></div>
@@ -110,34 +135,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 </body>
 
-    <!--   Core JS Files   -->
-    <script src="assets/js/jquery-1.10.2.js" type="text/javascript"></script>
-	<script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
-
-	<!--  Checkbox, Radio & Switch Plugins -->
-	<script src="assets/js/bootstrap-checkbox-radio-switch.js"></script>
-
-	<!--  Charts Plugin -->
-	<script src="assets/js/chartist.min.js"></script>
-
-    <!--  Notifications Plugin    -->
-    <script src="assets/js/bootstrap-notify.js"></script>
-
-    <!--  Google Maps Plugin    -->
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
-
-    <!-- Light Bootstrap Table Core javascript and methods for Demo purpose -->
-	<script src="assets/js/light-bootstrap-dashboard.js"></script>
-
-	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
-	<script src="assets/js/demo.js"></script>
-
-    <!-- Toggle button -->
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
-    <script src="<?= base_url(); ?>assets/js/canvasjs.min.js"></script>
-
     <?php foreach ($sensors as $sensor): ?>
         <script>
             <?php
@@ -145,17 +142,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             ?>
             $(function() {
                 var chart1 = new CanvasJS.Chart("sensor-<?= $sensor->get_SensorID() ?>", {
-                    title: {
-                        text: "<?= $sensor->get_SensorBezeichnung(); ?> Ganzer Tag"
-                    },
-                    axisX: {
-                        interval: 10
+                    
+                    axisX:{
+                        gridThickness: 1,
+                        valueFormatString: "HH:mm"
                     },
                     data: [{
                         type: "line",
                         dataPoints: [
                             <?php foreach ($sensorData as $item): ?>
-                            { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?> },
+                            { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?>, label: "<?= date('H:i:s', $item->get_SensorZeit()+7200);?>" },
                             <?php endforeach; ?>
                         ]
                     }]
@@ -163,7 +159,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 chart1.render();
             });
 			
-			$(document).ready(refresh);
+			
+			$(document).ready(function(){
+                            refresh();
+							refreshWarnings();
+                            window.setInterval(refresh, 5000);
+							window.setInterval(refreshWarnings, 5000);
+                        } );
+			function refreshWarnings(){
+				refreshVar("#warningsOverview");
+			}
         </script>
     <?php endforeach; ?>
 

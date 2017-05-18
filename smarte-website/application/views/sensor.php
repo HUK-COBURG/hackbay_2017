@@ -14,17 +14,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						window.onload = function() {
 							var chart1 = new CanvasJS.Chart("insgesamt", {
 								title: {
-									text: "<?= $sensor->get_SensorBezeichnung(); ?> Ganzer Tag"
+									text: "Letzter Tag"
 								},
-								axisX: {
-									interval: 10
-								},
+                                                                axisX:{
+                                                                    title: "Uhrzeit",
+                                                                    gridThickness: 1,
+                                                                    valueFormatString: "HH:mm"
+                                                                },
+                                                                axisY: {
+                                                                    title: "<?= $sensor->get_SensorBezeichnung(); ?>"
+                                                                },
 								data: [{
 									type: "line",
 									dataPoints: [
 									
-									<?php foreach ($data as $item): ?>
-									  { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?> },
+									<?php foreach ($data['day'] as $item): ?>
+									  { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?>, label: "<?= date('H:i:s', $item->get_SensorZeit()+7200);?>" },
 									<?php endforeach; ?>
 									]
 								}]
@@ -32,24 +37,28 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 							chart1.render();
 							var chart2 = new CanvasJS.Chart("letzte5", {
 								title: {
-									text: "<?= $sensor->get_SensorBezeichnung(); ?> Letzte Stunde"
+									text: "Letzte Stunde"
 								},
-								axisX: {
-									interval: 10
-								},
+								axisX:{
+                                                                    title: "Uhrzeit",
+                                                                    gridThickness: 1,
+                                                                    valueFormatString: "HH:mm"
+                                                                },
+                                                                axisY: {
+                                                                    title: "<?= $sensor->get_SensorBezeichnung(); ?>"
+                                                                },
 								data: [{
 									type: "line",
 									dataPoints: [
 									
-									<?php foreach ($data as $item): ?>
-									  { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?> },
+									<?php foreach ($data['hour'] as $item): ?>
+									  { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?>, label: "<?= date('H:i:s', $item->get_SensorZeit()+7200);?>" },
 									<?php endforeach; ?>
 									]
 								}]
 							});
 							chart2.render();
 						}
-						$(document).ready(refresh);
 					</script>
 					
 	<title>Light Bootstrap Dashboard by Creative Tim</title>
@@ -76,36 +85,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
     <link href='http://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
     <link href="<?= base_url(); ?>assets/css/pe-icon-7-stroke.css" rel="stylesheet" />
-</head>
-<body>
-
-<div class="wrapper">
-    <?php include 'sidebar.php';?>
-
-    <div class="main-panel">
-		<?php include 'navbar.php';?>
-
-        <div class="content">
-            <div class="container-fluid">
-                <div class="row"> 
-					<div id="insgesamt" style="height: 400px; width: 100%;"></div>
-                </div>
-				<div class="row">
-					<div id="letzte5" style="height: 400px; width: 100%;"></div>
-				</div>
-            </div>
-        </div>
-
-
-        
-
-    </div>
-</div>
-
-
-</body>
-
-    <!--   Core JS Files   -->
+	
+	    <!--   Core JS Files   -->
     <script src="<?= base_url(); ?>assets/js/jquery-1.10.2.js" type="text/javascript"></script>
 	<script src="<?= base_url(); ?>assets/js/bootstrap.min.js" type="text/javascript"></script>
 
@@ -126,5 +107,42 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
 	<script src="<?= base_url(); ?>assets/js/demo.js"></script>
+</head>
+<body>
+
+<div class="wrapper">
+    <?php include 'sidebar.php';?>
+
+    <div class="main-panel">
+		<?php include 'navbar.php';?>
+		<script>
+		$(document).ready(function(){ 
+                    refresh();
+                    window.setInterval(refresh, 5000);
+                } );
+		</script>
+        <div class="content">
+            <div class="container-fluid">
+                <div class="card">
+                    <div class="content">
+					<div id="letzte5" style="height: 400px; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="content">
+                        <div id="insgesamt" style="height: 400px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        
+
+    </div>
+</div>
+
+
+</body>
 
 </html>

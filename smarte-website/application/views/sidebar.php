@@ -1,4 +1,4 @@
-<div class="sidebar" data-color="purple" data-image="assets/img/sidebar-5.jpg">
+<div class="sidebar" data-color="purple" data-image="<?= base_url();?>assets/img/sidebar-5.jpg">
 
     <!--
 
@@ -26,11 +26,6 @@
                 <li>
                     <a href="<?= base_url(); ?>schaden">
                         <p>Schaden melden</p>
-                    </a>
-                </li>
-                <li>
-                    <a href="typography.html">
-                        <p>Tarif anzeigen</p>
                     </a>
                 </li>
             </ul>

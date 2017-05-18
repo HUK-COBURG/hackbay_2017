@@ -1,23 +1,65 @@
+<style>
+    .levelI a{
+        background-image: url('https://cdn4.iconfinder.com/data/icons/momenticons-gloss-basic/momenticons-gloss-basic/16/bullet-green.png');
+        background-repeat: no-repeat;
+        background-position: 2px center;
+    }
+    
+    .levelW a{
+        background-image: url('https://cdn4.iconfinder.com/data/icons/momenticons-gloss-basic/momenticons-gloss-basic/16/bullet-yellow.png');
+        background-repeat: no-repeat;
+        background-position: 2px center;
+    }
+    
+    .levelE a{
+        background-image: url('https://cdn4.iconfinder.com/data/icons/momenticons-gloss-basic/momenticons-gloss-basic/16/bullet-red.png');
+        background-repeat: no-repeat;
+        background-position: 2px center;
+    }
+</style>
+
 <script>
-    function refresh(){
-        $.ajax({url: "ajax/messages", success: function(result){
+    
+    
+    function refreshVar(elem){
+        $.ajax({url: "<?= site_url('ajax/messages') ?>", success: function(result){
             var json = JSON.parse(result);
             
-            $("#refresh1").html(json.length);
-            $("#refresh2").html(json.length + " Benachrichtigung(en)");
+            var anzahl = json.messages.length
             
-            for (var schwellwerte in json) {
-                // skip loop if the property is from prototype
-                if (!json.hasOwnProperty(schwellwerte)) continue;
+            $(elem).empty();
+            
+            for(var k = 0; k < anzahl; k++){
+                var name = json.messages[k].name;
+                var level = json.messages[k].level;
+                var text = json.messages[k].text;
+                
+                $(elem).append('<li class="level' + level + '"><a style="padding-left:20px;" href="<?= site_url('sensor/show/'); ?>' + name + '">&nbsp;' + text + '</a></li>');
+            }
+            
+        }});
+    }
+    
+    function refresh(){
+        $.ajax({url: "<?= site_url('ajax/messages') ?>", success: function(result){
+            var json = JSON.parse(result);
+            
+            var anzahl = json.messages.length
 
-                var schwellwert = json[schwellwerte];
-                for (var prop in schwellwert) {
-                    // skip loop if the property is from prototype
-                    if(!schwellwert.hasOwnProperty(prop)) continue;
-
-                    alert(prop);
-                    $("#refresh3").append("<li><a href=&quot;#&quot;>" + prop + "</a></li>");
-                }
+            $("#refresh1").empty();
+            $("#refresh2").empty();
+            
+            $("#refresh1").html(anzahl);
+            $("#refresh2").html(anzahl + " Benachrichtigung(en)");
+            
+            $("#refresh3").empty();
+            
+            for(var k = 0; k < anzahl; k++){
+                var name = json.messages[k].name;
+                var level = json.messages[k].level;
+                var text = json.messages[k].text;
+      
+                $("#refresh3").append('<li class="level' + level + '"><a href="<?= site_url('sensor/show/'); ?>' + name + '">&nbsp;' + text + '</a></li>');
             }
             
         }});
@@ -41,14 +83,13 @@
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-globe"></i>
                                     <b class="caret hidden-sm hidden-xs"></b>
-                                    <span id="refresh1" class="notification hidden-sm hidden-xs">1</span>
+                                    <span id="refresh1" class="notification hidden-sm hidden-xs">0</span>
 									<p id="refersh2" class="hidden-lg hidden-md">
-										1 Benachrichtigung
 										<b class="caret"></b>
 									</p>
                               </a>
                               <ul id="refresh3" class="dropdown-menu">
-                                <li><a href="#">Möglicher Wasserschaden</a></li>
+                                <li><a href="#"></a></li>
                               </ul>
                         </li>
                     </ul>
