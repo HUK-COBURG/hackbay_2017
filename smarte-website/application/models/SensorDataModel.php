@@ -40,7 +40,7 @@ class SensorDataModel extends CI_Model {
         return($data);
     }
     
-    public function get_current_data($sensor) {
+    public function get_last_data($sensor) {
         $sql = "SELECT * FROM SensorDaten WHERE SensorID = ? ORDER BY SensorZeit DESC LIMIT 1";
         $query = $this->db->query($sql, array($sensor->get_SensorID()));
         

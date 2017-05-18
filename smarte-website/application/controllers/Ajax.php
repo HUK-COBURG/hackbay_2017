@@ -22,8 +22,18 @@ class Ajax extends CI_Controller {
     {
         echo 'hier';
         
+        $this->load->model('SensorModel');
+        $this->load->model('SensorDataModel');
+        $this->load->model('SchwellwertModel');
         
         
+        $sensor = $this->SensorModel->get_sensor_by_name('Temperatur');
+        $current = $this->SensorDataModel->get_last_data($sensor);
+        $schwellwerte = $this->SchwellwertModel->get_schwellwerte($sensor);
+       
+        var_dump($sensor);
+        var_dump($current);
+        var_dump($schwellwerte);
     }
     
 }

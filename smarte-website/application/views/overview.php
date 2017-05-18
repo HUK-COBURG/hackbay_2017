@@ -93,20 +93,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <div class="col-md-6">
                         <div class="card">
                             <div class="header">
-                                <h4 class="title">Steckdose</h4>
+                                <h4 class="title">Fernseher</h4>
                             </div>
                             <div class="content">
-                                <form action="https://api.particle.io/v1/devices/3e004d000f51353532343635/relais?access_token=160e0dfae04bcd876bc3c21cad6470f42bfa2964" method="POST">
-                                    Schalte das <br>
-                                    <br>
-                                    <input type="radio" name="arg" value="on">Relais ein.
-                                    <br>
-                                    <input type="radio" name="arg" value="off">Relais aus.
-                                    <br>
-                                    <br>
-                                    <input type="submit" value="Ausf&uuml;hren">
-                                </form>
-                            </div> 
+                                <input type="checkbox" id="checkbox-steckdose" checked data-toggle="toggle">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -141,6 +132,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
 	<script src="assets/js/demo.js"></script>
 
+    <!-- Toggle button -->
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
     <script src="<?= base_url(); ?>assets/js/canvasjs.min.js"></script>
 
     <?php foreach ($sensors as $sensor): ?>
@@ -167,7 +162,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 });
                 chart1.render();
             });
+			
+			$(document).ready(refresh);
         </script>
     <?php endforeach; ?>
+
+    <script>
+        $('#checkbox-steckdose').on('change', function () {
+            var arg = $('#checkbox-steckdose').prop('checked') ? 'on' : 'off';
+            $.post('https://api.particle.io/v1/devices/3e004d000f51353532343635/relais?access_token=160e0dfae04bcd876bc3c21cad6470f42bfa2964', { arg: arg });
+        });
+    </script>
 
 </html>

@@ -49,6 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 							});
 							chart2.render();
 						}
+						$(document).ready(refresh);
 					</script>
 					
 	<title>Light Bootstrap Dashboard by Creative Tim</title>

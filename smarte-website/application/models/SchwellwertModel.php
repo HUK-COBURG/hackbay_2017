@@ -11,6 +11,22 @@
  *
  * @author andre
  */
-class SchwellwertModel {
-    //put your code here
+class SchwellwertModel extends CI_Model {
+    
+    public function __construct() {
+        $this->load->model('SensorDAO');
+        $this->load->model('SchwellwertDAO');
+    }
+    
+    public function get_schwellwerte($sensor) {
+        $data = array();
+        
+        $sql = "SELECT * FROM Schwellwerte WHERE SensorID = ?";
+        $query = $this->db->query($sql, array($sensor->get_SensorID()));
+        
+        $data = $query->result('SchwellwertDAO');
+        
+        return($data);
+    }
+    
 }

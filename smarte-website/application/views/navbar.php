@@ -1,21 +1,21 @@
 <script>
-    window.setInterval(refresh, 1000);
-    
-    refresh(){
-        $.ajax({url: "demo_test.txt", success: function(result){
+    function refresh(){
+        $.ajax({url: "ajax/messages", success: function(result){
             var json = JSON.parse(result);
+            
             $("#refresh1").html(json.length);
             $("#refresh2").html(json.length + " Benachrichtigung(en)");
             
-            for (var key in json) {
+            for (var schwellwerte in json) {
                 // skip loop if the property is from prototype
-                if (!json.hasOwnProperty(key)) continue;
+                if (!json.hasOwnProperty(schwellwerte)) continue;
 
-                var obj = json[key];
-                for (var prop in obj) {
+                var schwellwert = json[schwellwerte];
+                for (var prop in schwellwert) {
                     // skip loop if the property is from prototype
-                    if(!obj.hasOwnProperty(prop)) continue;
+                    if(!schwellwert.hasOwnProperty(prop)) continue;
 
+                    alert(prop);
                     $("#refresh3").append("<li><a href=&quot;#&quot;>" + prop + "</a></li>");
                 }
             }
