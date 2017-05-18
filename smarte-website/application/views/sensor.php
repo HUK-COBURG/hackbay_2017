@@ -82,52 +82,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <?php include 'sidebar.php';?>
 
     <div class="main-panel">
-		<nav class="navbar navbar-default navbar-fixed">
-            <div class="container-fluid">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation-example-2">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#"><?= $sensor->get_SensorBezeichnung(); ?></a>
-                </div>
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav navbar-left">
-                        <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <i class="fa fa-globe"></i>
-                                    <b class="caret hidden-sm hidden-xs"></b>
-                                    <span class="notification hidden-sm hidden-xs">1</span>
-									<p class="hidden-lg hidden-md">
-										1 Benachrichtigung
-										<b class="caret"></b>
-									</p>
-                              </a>
-                              <ul class="dropdown-menu">
-                                <li><a href="#">Möglicher Wasserschaden</a></li>
-                              </ul>
-                        </li>
-                    </ul>
-
-                    <ul class="nav navbar-nav navbar-right">
-                        <li>
-                           <a href="">
-                               <p>Konto</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <p>Abmelden</p>
-                            </a>
-                        </li>
-						<li class="separator hidden-lg hidden-md"></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
+		<?php include 'navbar.php';?>
 
         <div class="content">
             <div class="container-fluid">

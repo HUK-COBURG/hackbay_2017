@@ -15,7 +15,7 @@ class Sensor extends CI_Controller {
     
     public function index()
     {
-        
+        show_404();
     }
     
     public function show($name = null)

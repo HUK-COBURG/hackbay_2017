@@ -10,7 +10,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<link rel="stylesheet" href="assets/css-percentage-circle-master/css/circle.css">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-	<title>Smart Home Statistiken</title>
+	<title>Schaden melden</title>
 
 	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
     <meta name="viewport" content="width=device-width" />
@@ -44,6 +44,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <div class="main-panel">
         <?php include 'navbar.php';?>
 
+
         <div class="content">
             <div class="container-fluid">
                 <div class="row">
@@ -75,6 +76,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </div>
 
 				<div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="header">
+                                <h4 class="title">Statistiken</h4>
+                            </div>
+                            <div class="content">
+                                <ul>
+								<?php foreach ($sensors as $sensor): ?>
+									<li><a href="<?= base_url(); ?>sensor/show/<?= $sensor->get_SensorBezeichnung(); ?>"><?= $sensor->get_SensorBezeichnung(); ?></a></li>
+								<?php endforeach; ?>
+								</ul>
+                            </div>
+							
+                        </div>
+						
+                    </div>
+                </div>
+
+				<div class="row">
                     <?php foreach ($sensors as $sensor): ?>
                         <div class="col-md-6">
                             <div class="card">
@@ -82,36 +102,39 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <h4 class="title">Sensor <?= $sensor->get_SensorBezeichnung() ?></h4>
                                 </div>
                                 <div class="content">
+                                    <script>
+                                        <?php
+                                            $sensorData = $data[$sensor->get_SensorID()];
+                                        ?>
+                                        $(function() {
+                                            var chart1 = new CanvasJS.Chart("sensor-<?= $sensor->get_SensorID() ?>", {
+                                                title: {
+                                                    text: "<?= $sensor->get_SensorBezeichnung(); ?> Ganzer Tag"
+                                                },
+                                                axisX: {
+                                                    interval: 10
+                                                },
+                                                data: [{
+                                                    type: "line",
+                                                    dataPoints: [
+                                                        <?php foreach ($sensorData as $item): ?>
+                                                        { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?> },
+                                                        <?php endforeach; ?>
+                                                    ]
+                                                }]
+                                            });
+                                            chart1.render();
+                                        });
+                                    <script>
                                     <div id="sensor-<?= $sensor->get_SensorID() ?>" style="height: 400px; width: 100%;"></div>
                                 </div> 
                             </div>
                         </div>
 					<?php endforeach; ?>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="header">
-                                <h4 class="title">Steckdose</h4>
-                            </div>
-                            <div class="content">
-                                <form action="https://api.particle.io/v1/devices/3e004d000f51353532343635/relais?access_token=160e0dfae04bcd876bc3c21cad6470f42bfa2964" method="POST">
-                                    Schalte das <br>
-                                    <br>
-                                    <input type="radio" name="arg" value="on">Relais ein.
-                                    <br>
-                                    <input type="radio" name="arg" value="off">Relais aus.
-                                    <br>
-                                    <br>
-                                    <input type="submit" value="Ausf&uuml;hren">
-                                </form>
-                            </div> 
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
+
 
     </div>
 </div>
@@ -140,34 +163,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
 	<script src="assets/js/demo.js"></script>
-
-    <script src="<?= base_url(); ?>assets/js/canvasjs.min.js"></script>
-
-    <?php foreach ($sensors as $sensor): ?>
-        <script>
-            <?php
-                $sensorData = $data[$sensor->get_SensorID()];
-            ?>
-            $(function() {
-                var chart1 = new CanvasJS.Chart("sensor-<?= $sensor->get_SensorID() ?>", {
-                    title: {
-                        text: "<?= $sensor->get_SensorBezeichnung(); ?> Ganzer Tag"
-                    },
-                    axisX: {
-                        interval: 10
-                    },
-                    data: [{
-                        type: "line",
-                        dataPoints: [
-                            <?php foreach ($sensorData as $item): ?>
-                            { x: new Date("<?= date('c', $item->get_SensorZeit());?>"), y: <?= $item->get_SensorWert();?> },
-                            <?php endforeach; ?>
-                        ]
-                    }]
-                });
-                chart1.render();
-            });
-        </script>
-    <?php endforeach; ?>
 
 </html>

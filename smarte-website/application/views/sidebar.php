@@ -24,7 +24,7 @@
 				<li class="<?= ((isset($sensor) && $sensor->get_SensorID() == $item->get_SensorID()) ? 'active' : ''); ?>"><a href="<?= base_url(); ?>sensor/show/<?= $item->get_SensorBezeichnung(); ?>"><p><?= $item->get_SensorBezeichnung(); ?></p></a></li>
 			<?php endforeach; ?>
                 <li>
-                    <a href="table.html">
+                    <a href="<?= base_url(); ?>schaden">
                         <p>Schaden melden</p>
                     </a>
                 </li>
