@@ -5,15 +5,16 @@ require("phpMQTT.php");
 echo "MQTT-Server started...";
 
 	
-$mqtt = new phpMQTT("172.17.100.252", 1883, "phpMQTT Sub Example"); //Change client name to something unique
+$mqtt = new phpMQTT("localhost", 1883, "phpMQTT Sub Example"); //Change client name to something unique
 
 
 
 if(!$mqtt->connect()){
+        echo "MQTT-Server connection failed...";
 	exit(1);
 }
 
-$topics['smart-e1/#'] = array("qos"=>0, "function"=>"procmsg");
+$topics['#'] = array("qos"=>0, "function"=>"procmsg");
 $mqtt->subscribe($topics, 0);
 
 $run = 0;
@@ -28,7 +29,7 @@ function procmsg($topic,$msg){
 	
 	echo "Msg Recieved: ".date("r")."\nTopic:{$topic}\n$msg\n";
 	
-	$con = mysqli_connect("localhost","root","PMff3hw6","smarte");
+	$con = mysqli_connect("localhost","smarte","smarte","smarte");
 	$sql = "INSERT INTO SensorDaten (SensorZeit, SensorID, SensorWert) VALUES (" . time() . ", '" . $topic . "', " . $msg . ")";
 	
 	$con->query($sql);
