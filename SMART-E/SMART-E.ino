@@ -18,11 +18,19 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
+// ESP Configuration
+//#define MQTT_ID "smart-e1" // ESP auf Breadboard
+//const int LEDPIN = 2; // Oneboard Led LoLin (Breadboard)
+#define MQTT_ID "smart-e2" // ESP im 3D Druck Gehäuse
+const int LEDPIN = 16; // Oneboard Led Nodemcu (3D)
+
+// WLAN network details
+const char* ssid = "smart-e";
+const char* password = "smart-esmart-e";
+
 // Uncomment one of the lines below for whatever DHT sensor type you're using!
 #define DHTTYPE DHT11   // DHT 11
 
-//#define MQTT_ID "smart-e1" // ESP auf Breadboard
-#define MQTT_ID "smart-e2" // ESP im 3D Druck Gehäuse
 #define MQTT_LOG_ENABLED 1
 static MqttClient *mqtt = NULL;
 static WiFiClient network;
@@ -34,14 +42,6 @@ float voltageConversionWaterConstant = .0357142857;
 
 int bewegung = D1; // Simulation für Einbruch
 int bewegungsst; // Status des Bewegungsmelders
-
-//const int LEDPIN = 2; // Oneboard Led LoLin (Breadboard)
-const int LEDPIN = 16; // Oneboard Led Nodemcu (3D)
-
-// WLAN network details
-const char* ssid = "SMART-E";
-//const char* password = "4748913496853697";
-const char* password = "smart-esmart-e";
 
 // Web Server on port 80
 WiFiServer server(80);
@@ -95,6 +95,7 @@ void setup() {
     delay(500);
     Serial.print(".");
     digitalWrite(LEDPIN, LOW);   // Turn the LED on
+    delay(500);
   }
   Serial.println("");
   Serial.println("WiFi connected");
