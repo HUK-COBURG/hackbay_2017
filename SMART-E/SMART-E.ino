@@ -9,14 +9,16 @@
 #include <ESP8266WiFiScan.h>
 #include <ESP8266WiFiSTA.h>
 #include <ESP8266WiFiType.h>
+
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
 #include <WiFiServer.h>
 #include <WiFiUdp.h>
 
 #include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <TSL2561.h>
 #include <DHT.h>
-#include <DHT_U.h>
 
 // ESP Configuration
 //#define MQTT_ID "smart-e1" // ESP auf Breadboard
@@ -25,11 +27,20 @@
 const int LEDPIN = 16; // Oneboard Led Nodemcu (3D)
 
 // WLAN network details
-const char* ssid = "smart-e";
-const char* password = "smart-esmart-e";
+const char* ssid = "SMART-E";
+const char* password = "smarte123";
+
+// MQTT server details
+const char* mqtt_server = "192.168.1.1";
 
 // Uncomment one of the lines below for whatever DHT sensor type you're using!
-#define DHTTYPE DHT11   // DHT 11
+#define DHTTYPE DHT11   // DHT11 or DHT22
+//#define DHT_DEBUG // for Debugging
+
+// The address will be different depending on whether you let
+// the ADDR pin float (addr 0x39), or tie it to ground or vcc. In those cases
+// use TSL2561_ADDR_LOW (0x29) or TSL2561_ADDR_HIGH (0x49) respectively
+TSL2561 tsl(TSL2561_ADDR_FLOAT);
 
 #define MQTT_LOG_ENABLED 1
 static MqttClient *mqtt = NULL;
@@ -40,14 +51,14 @@ int wasserstand; // Höhe des Wasserstandes
 // Konstant-Variable zur Berechnung der Wasserstandes
 float voltageConversionWaterConstant = .0357142857;
 
-int bewegung = D1; // Simulation für Einbruch
+int bewegung = D3; // Simulation für Einbruch
 int bewegungsst; // Status des Bewegungsmelders
 
 // Web Server on port 80
 WiFiServer server(80);
 
 // DHT Sensor
-const int DHTPin = D0;
+const int DHTPin = D4;
 // Initialize DHT sensor.
 DHT dht(DHTPin, DHTTYPE);
 
@@ -69,11 +80,37 @@ class System: public MqttClient::System {
     }
 };
 
+
 // only runs once on boot
 void setup() {
   // Initializing serial port for debugging purposes
   Serial.begin(115200);
   delay(10);
+  Serial.println();
+
+  // Initializing I2C ports (SCL=5 => D1, SDA=4 => D2):
+  Wire.begin(4, 5); // int sda, int scl
+
+  if (tsl.begin())
+  {
+    Serial.println("Found a TSL2591 sensor");
+  }
+  else
+  {
+    Serial.println("No TSL2591 sensor found ... check your wiring?");
+    while (1);
+  }
+
+  // Configure the TSL2591 sensor
+  // You can change the gain on the fly, to adapt to brighter/dimmer light situations
+  //tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
+  tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
+
+  // Changing the integration time gives you a longer time over which to sense light
+  // longer timelines are slower, but are good in very low light situtations!
+  tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);  // shortest integration time (bright light)
+  //tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);  // medium integration time (medium light)
+  //tsl.setTiming(TSL2561_INTEGRATIONTIME_402MS);  // longest integration time (dim light)
 
   dht.begin();
   delay(10000); // 10 Sekunden warten
@@ -84,12 +121,12 @@ void setup() {
   pinMode(LEDPIN, OUTPUT); // Initialize the internal LEDPIN pin as an output
 
   // Connecting to WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
+  Serial.print("Connecting to WLAN ");
   Serial.println(ssid);
   digitalWrite(LEDPIN, LOW);   // Turn the LED on
   WiFi.begin(ssid, password);
 
+  Serial.println("Connect to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     digitalWrite(LEDPIN, HIGH);  // Turn the LED off
     delay(500);
@@ -97,7 +134,7 @@ void setup() {
     digitalWrite(LEDPIN, LOW);   // Turn the LED on
     delay(500);
   }
-  Serial.println("");
+  Serial.println();
   Serial.println("WiFi connected");
   digitalWrite(LEDPIN, LOW);   // Turn the LED on
 
@@ -134,14 +171,19 @@ void setup() {
 void loop() {
   // Auslesen der Eingänge und setzen entsprechender Variablen
   wasserstand = analogRead(watermeter) * voltageConversionWaterConstant;
-  Serial.println("Read watermark sensor:");
-  Serial.println(analogRead(watermeter));
-  Serial.println(wasserstand);
+  Serial.println("Read from watermark sensor:");
+  Serial.print(analogRead(watermeter)); Serial.print(" V\t");
+  Serial.print(wasserstand); Serial.println(" cm");
 
   bewegungsst = digitalRead(bewegung);
-  Serial.println("Read motion sensor:");
-  Serial.println(bewegungsst);
+  Serial.println("Read from motion sensor:");
+  if (bewegungsst) {
+    Serial.println("Bewegung vorhanden");
+  } else {
+    Serial.println("keine Bewegung");
+  }
 
+  Serial.println("Read from DHT11 sensor:");
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
   // Read temperature as Celsius (the default)
@@ -150,15 +192,12 @@ void loop() {
   float f = dht.readTemperature(true);
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
-    Serial.println("Failed to read from DHT sensor!");
-    //    strcpy(celsiusTemp, "Failed");
-    //    strcpy(fahrenheitTemp, "Failed");
-    //    strcpy(humidityTemp, "Failed");
-    strcpy(celsiusTemp, "21.5");
+    Serial.println("Failed to read from DHT11 sensor!");
+    strcpy(celsiusTemp, "Failed");
     strcpy(fahrenheitTemp, "Failed");
-    strcpy(humidityTemp, "42.0");
-  }
-  else {
+    strcpy(humidityTemp, "Failed");
+    delay(2000);
+  } else {
     // Computes temperature values in Celsius + Fahrenheit and Humidity
     float hic = dht.computeHeatIndex(t, h, false);
     dtostrf(hic, 6, 2, celsiusTemp);
@@ -176,18 +215,83 @@ void loop() {
     Serial.print(hic);
     Serial.print(" *C ");
     Serial.print(hif);
-    Serial.print(" *F");
-    Serial.print("Humidity: ");
-    Serial.print(h);
-    Serial.print(" %\t Temperature: ");
-    Serial.print(t);
-    Serial.print(" *C ");
-    Serial.print(f);
-    Serial.print(" *F\t Heat index: ");
-    Serial.print(hic);
-    Serial.print(" *C ");
-    Serial.print(hif);
     Serial.println(" *F");
+  }
+
+  Serial.println("Read from TSL2561 sensor:");
+  // Simple data read example. Just read the infrared, fullspecrtrum diode
+  // or 'visible' (difference between the two) channels.
+  // This can take 13-402 milliseconds! Uncomment whichever of the following you want to read
+  //uint16_t x = tsl.getLuminosity(TSL2561_VISIBLE);
+  //uint16_t x = tsl.getLuminosity(TSL2561_FULLSPECTRUM);
+  //uint16_t x = tsl.getLuminosity(TSL2561_INFRARED);
+  //Serial.println(x, DEC);
+
+  // More advanced data read example. Read 32 bits with top 16 bits IR, bottom 16 bits full spectrum
+  // That way you can do whatever math and comparisons you want!
+  uint32_t lum = tsl.getFullLuminosity();
+  uint16_t ir, full;
+  ir = lum >> 16;
+  full = lum & 0xFFFF;
+  Serial.print("IR: "); Serial.print(ir); Serial.print("\t\t");
+  Serial.print("Full: "); Serial.print(full); Serial.print("\t");
+  Serial.print("Visible: "); Serial.print(full - ir); Serial.print("\t");
+  Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));
+
+  // Listenning for new clients
+  WiFiClient client = server.available();
+
+  if (client) {
+    Serial.println("New HTTP client");
+    // bolean to locate when the http request ends
+    boolean blank_line = true;
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+
+        if (c == '\n' && blank_line) {
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/html");
+          client.println("Connection: close");
+          client.println();
+          // your actual web page that displays sensor values
+          client.println("<!DOCTYPE HTML>");
+          client.println("<html>");
+          client.println("<head></head><body><h1>SMART-E - Multi-Sensor</h1>");
+          client.println("<h3>Temperature in Celsius: ");
+          client.println(celsiusTemp);
+          client.println("*C</h3><h3>Temperature in Fahrenheit: ");
+          client.println(fahrenheitTemp);
+          client.println("*F</h3><h3>Luftfeuchte: ");
+          client.println(humidityTemp);
+          client.println("%</h3>");
+          client.println("<h3>Infrarot: "); client.print(ir); client.print("</h3><h3>");
+          client.println("Volles Spektrum: "); client.print(full); client.print("</h3><h3>");
+          client.println("Sichtbares Licht: "); client.print(full - ir); client.print("</h3><h3>");
+          client.println("Lichtst&auml;rke: "); client.print(tsl.calculateLux(full, ir)); client.print(" Lux</h3>");
+          client.println("<h3>Bewegung: ");
+          if (bewegungsst) {
+            client.print("vorhanden"); client.print("</h3>");
+          } else {
+            client.print("keine"); client.print("</h3>");
+          }
+          client.println("</body></html>");
+          break;
+        }
+        if (c == '\n') {
+          // when starts reading a new line
+          blank_line = true;
+        }
+        else if (c != '\r') {
+          // when finds a character on the current line
+          blank_line = false;
+        }
+      }
+    }
+    // closing the client connection
+    delay(1);
+    client.stop();
+    Serial.println("HTTP Client disconnected.");
   }
 
   // Check connection status
@@ -195,14 +299,12 @@ void loop() {
     // Close connection if exists
     network.stop();
     // Re-establish TCP connection with MQTT broker
-    Serial.println("Connecting MQTT server");
-    network.connect("192.168.1.1", 1883);
-    //network.connect("192.168.178.41", 1883);
-    //network.connect("192.168.178.2", 1883);
+    Serial.println("Connect to MQTT server");
+    network.connect(mqtt_server, 1883);
     if (!network.connected()) {
-      Serial.println("Can't establish the TCP connection");
-      delay(5000);
-      ESP.reset();
+      Serial.println("Can't establish the TCP connection to MQTT server!");
+      delay(2000);
+      //ESP.reset();
     }
     // Start new MQTT connection
     MqttClient::ConnectResult connectResult;
@@ -277,51 +379,19 @@ void loop() {
 
       // Idle for 2 seconds
       mqtt->yield(2000L);
+      
+      // Publish helligkeit value
+      MQTT_TOPIC_PUB = MQTT_ID "/helligkeit";
+      dtostrf(tsl.calculateLux(full, ir), 6, 2, buf);
+      message.payload = (void*) buf;
+      message.payloadLen = strlen(buf) + 1;
+      Serial.println("Publish MQTT message:");
+      Serial.println(MQTT_TOPIC_PUB);
+      Serial.println(buf);
+      mqtt->publish(MQTT_TOPIC_PUB, message);
+
+      // Idle for 2 seconds
+      mqtt->yield(2000L);
     }
-  }
-
-  // Listenning for new clients
-  WiFiClient client = server.available();
-
-  if (client) {
-    Serial.println("New client");
-    // bolean to locate when the http request ends
-    boolean blank_line = true;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-
-        if (c == '\n' && blank_line) {
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");
-          client.println();
-          // your actual web page that displays temperature and humidity
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          client.println("<head></head><body><h1>ESP8266 - Temperature and Humidity</h1><h3>Temperature in Celsius: ");
-          client.println(celsiusTemp);
-          client.println("*C</h3><h3>Temperature in Fahrenheit: ");
-          client.println(fahrenheitTemp);
-          client.println("*F</h3><h3>Humidity: ");
-          client.println(humidityTemp);
-          client.println("%</h3><h3>");
-          client.println("</body></html>");
-          break;
-        }
-        if (c == '\n') {
-          // when starts reading a new line
-          blank_line = true;
-        }
-        else if (c != '\r') {
-          // when finds a character on the current line
-          blank_line = false;
-        }
-      }
-    }
-    // closing the client connection
-    delay(1);
-    client.stop();
-    Serial.println("Client disconnected.");
   }
 }
