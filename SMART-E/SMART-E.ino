@@ -144,6 +144,7 @@ void setup() {
   delay(10000);
 
   // Printing the ESP IP address
+  Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
   // Setup MqttClient
@@ -171,7 +172,7 @@ void setup() {
 void loop() {
   // Check WiFi Status
   if (WiFi.status() != WL_CONNECTED) {
-    connecting();
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
   }
   
   // Auslesen der Eingänge und setzen entsprechender Variablen
