@@ -1,45 +1,28 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Description of Sensor
+ * Description of Dashboard
  *
  * @author andre
  */
 class Sensor extends CI_Controller {
     
-    public function index()
-    {
-        show_404();
+    public function __construct() {
+        parent::__construct();
+        
+        $this->load->model('RoomDAO');
+        $this->load->model('SensorDAO');
+        $this->load->model('MeasurementDAO');
     }
     
-    public function show($name = null)
-    {
-        $this->load->model('SensorModel');
+    public function info($id) {
+        $data['sensor'] = $this->SensorDAO->getSensorById($id);
         
-        $data['sensors'] = $this->SensorModel->get_active_sensors();
+        $roomId = $this->SensorDAO->getRoomIdBySensor($data['sensor']);
+        $data['room'] = $this->RoomDAO->getRoomById($roomId);
         
-        $sensor = $this->SensorModel->get_sensor_by_name($name);
-        if (!isset($sensor))
-        {
-            show_404();
-        }
-        else
-        {
-            $data['sensor'] = $sensor;
-            
-            $this->load->model('SensorDataModel');
-            $data['data']['hour'] = $this->SensorDataModel->get_sensor_data_from_to($sensor, time()-3600, time());
-            $data['data']['day'] = $this->SensorDataModel->get_sensor_data_from_to($sensor, time()-86400, time());
-            $data['sensors'] = $this->SensorModel->get_active_sensors();
-        
-            $this->load->view('sensor',$data);
-        }
+        $this->load->view('sensor', $data);
     }
     
 }

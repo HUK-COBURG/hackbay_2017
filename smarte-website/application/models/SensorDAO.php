@@ -1,45 +1,41 @@
-<?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
- * Description of Sensors
+ * Description of MenuDTO
  *
  * @author andre
  */
-class SensorDAO {
+class SensorDAO extends CI_Model {
     
-    private $SensorID;
-    private $SensorBezeichnung;
-    private $SensorAktiv;
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('SensorDTO');
+    }
     
+    public function getAllSensors() {     
+        $query = $this->db->get_where('sensors', array('active' => TRUE));
+        $alerts = $query->result('SensorDTO');
+        
+        return $alerts;
+    }
     
-    public function get_SensorID() {
-        return $this->SensorID;
+    public function getSensorsByRoom($room) {     
+        $query = $this->db->get_where('sensors', array('room' => $room->getId(), 'active' => TRUE));
+        $sensors = $query->result('SensorDTO');
+        
+        $room->setSensors($sensors);
+        return $sensors;
     }
-
-    public function get_SensorBezeichnung() {
-        return $this->SensorBezeichnung;
+    
+    public function getSensorById($id) {
+        $query = $this->db->get_where('sensors', array('id' => $id));
+        $sensor = $query->result('SensorDTO')[0];
+        
+        return $sensor;
     }
-
-    public function get_SensorAktiv() {
-        return $this->SensorAktiv;
+    
+    public function getRoomIdBySensor($sensor) {
+        $query = $this->db->get_where('sensors', array('id' => $sensor->getId()));
+        return $query->result()[0]->room;
     }
-
-    public function set_SensorID($SensorID) {
-        $this->SensorID = $SensorID;
-    }
-
-    public function set_SensorBezeichnung($SensorBezeichnung) {
-        $this->SensorBezeichnung = $SensorBezeichnung;
-    }
-
-    public function set_SensorAktiv($SensorAktiv) {
-        $this->SensorAktiv = $SensorAktiv;
-    }
-
 }
