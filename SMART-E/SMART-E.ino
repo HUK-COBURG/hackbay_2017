@@ -27,8 +27,8 @@
 const int LEDPIN = 16; // Oneboard Led Nodemcu (3D)
 
 // WLAN network details
-const char* ssid = "SMART-E";
-const char* password = "smarte123";
+const char* WIFI_SSID = "SMART-E";
+const char* WIFI_PASS = "smarte123";
 
 // MQTT server details
 const char* mqtt_server = "192.168.1.1";
@@ -122,9 +122,9 @@ void setup() {
 
   // Connecting to WiFi network
   Serial.print("Connecting to WLAN ");
-  Serial.println(ssid);
+  Serial.println(WIFI_SSID);
   digitalWrite(LEDPIN, LOW);   // Turn the LED on
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   Serial.println("Connect to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -169,6 +169,11 @@ void setup() {
 
 // runs over and over again
 void loop() {
+  // Check WiFi Status
+  if (WiFi.status() != WL_CONNECTED) {
+    connecting();
+  }
+  
   // Auslesen der Eingänge und setzen entsprechender Variablen
   wasserstand = analogRead(watermeter) * voltageConversionWaterConstant;
   Serial.println("Read from watermark sensor:");
@@ -338,9 +343,6 @@ void loop() {
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
 
-      // Idle for 2 seconds
-      mqtt->yield(2000L);
-
       // Publish humidity value
       MQTT_TOPIC_PUB = MQTT_ID "/luftfeuchte";
       buf = humidityTemp;
@@ -350,9 +352,6 @@ void loop() {
       Serial.println(MQTT_TOPIC_PUB);
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
-
-      // Idle for 2 seconds
-      mqtt->yield(2000L);
 
       // Publish watermark sensor value
       MQTT_TOPIC_PUB = MQTT_ID "/wasserstand";
@@ -364,9 +363,6 @@ void loop() {
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
 
-      // Idle for 2 seconds
-      mqtt->yield(2000L);
-
       // Publish watermark sensor value
       MQTT_TOPIC_PUB = MQTT_ID "/bewegung";
       dtostrf(bewegungsst, 6, 2, buf);
@@ -376,9 +372,6 @@ void loop() {
       Serial.println(MQTT_TOPIC_PUB);
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
-
-      // Idle for 2 seconds
-      mqtt->yield(2000L);
       
       // Publish helligkeit value
       MQTT_TOPIC_PUB = MQTT_ID "/helligkeit";
