@@ -344,6 +344,9 @@ void loop() {
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
 
+      // Idle for 2 seconds
+      mqtt->yield(2000L);
+
       // Publish humidity value
       MQTT_TOPIC_PUB = MQTT_ID "/luftfeuchte";
       buf = humidityTemp;
@@ -353,6 +356,9 @@ void loop() {
       Serial.println(MQTT_TOPIC_PUB);
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
+
+      // Idle for 2 seconds
+      mqtt->yield(2000L);
 
       // Publish watermark sensor value
       MQTT_TOPIC_PUB = MQTT_ID "/wasserstand";
@@ -364,6 +370,9 @@ void loop() {
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
 
+      // Idle for 2 seconds
+      mqtt->yield(2000L);
+
       // Publish watermark sensor value
       MQTT_TOPIC_PUB = MQTT_ID "/bewegung";
       dtostrf(bewegungsst, 6, 2, buf);
@@ -373,6 +382,9 @@ void loop() {
       Serial.println(MQTT_TOPIC_PUB);
       Serial.println(buf);
       mqtt->publish(MQTT_TOPIC_PUB, message);
+
+      // Idle for 2 seconds
+      mqtt->yield(2000L);
       
       // Publish helligkeit value
       MQTT_TOPIC_PUB = MQTT_ID "/helligkeit";
