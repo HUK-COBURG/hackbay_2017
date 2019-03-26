@@ -145,7 +145,7 @@ sudo cat > /home/pi/.config/autostart/chromium.desktop <<- "EOF"
 Encoding=UTF-8
 Name=Connect
 Comment=Checks internet connectivity
-Exec=/usr/bin/chromium-browser -incognito --start-fullscreen http://smarte/
+Exec=/usr/bin/chromium-browser -incognito --start-fullscreen http://192.168.1.1/
 EOF
 
 #setup python for listener
@@ -167,10 +167,5 @@ WantedBy=multi-user.target
 EOF
 sudo systemctl enable mqttlistener
 sudo systemctl start mqttlistener
-
-#copy font
-#sudo cp /var/www/html/smarte/assets/fonts/themify.ttf /usr/share/fonts/truetype/
-#sudo cp /var/www/html/smarte/assets/fonts/fontawesome-webfont.ttf /usr/share/fonts/truetype/
-
 
 echo "setup finished"
